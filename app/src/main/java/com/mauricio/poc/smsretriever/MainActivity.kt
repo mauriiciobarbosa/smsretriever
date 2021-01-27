@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity(), MessageListener {
 
         if (requestCode == REQUEST_SMS_PERMISSION_CODE && resultCode == Activity.RESULT_OK && data != null) {
             val message = data.getStringExtra(SmsRetriever.EXTRA_SMS_MESSAGE)
-            textViewMessage.text = message
+            textViewMessage.text = extractOtpCode(message.orEmpty())
         } else {
             Toast.makeText(this, "não deu bom", Toast.LENGTH_SHORT).show()
         }
@@ -81,8 +81,14 @@ class MainActivity : AppCompatActivity(), MessageListener {
         // startNewWay()
     }
 
+    private fun extractOtpCode(message: String): String {
+        val regex = "\\d{3}[A-Za-z]{2,}\\d{2}".toRegex()
+        return regex.find(message)?.let { it.value } ?: "not extracted"
+    }
+
     override fun onTimeout() {
         textViewMessage.text = "timed out"
-        Toast.makeText(this, "timeout", Toast.LENGTH_SHORT).show()
+        unregisterSMSReceiver()
+        startNewWay()
     }
 }
