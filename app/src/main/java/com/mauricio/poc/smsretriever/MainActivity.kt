@@ -20,6 +20,7 @@ class MainActivity : AppCompatActivity(), MessageListener {
     private val newSmsReceiver: BroadcastReceiver by lazy {
         SMSBroadcastReceiver(this)
     }
+    private var receiverRegistered = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,16 +50,18 @@ class MainActivity : AppCompatActivity(), MessageListener {
     private fun registerSMSReceiver() {
         val intentFilter = IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION)
         registerReceiver(newSmsReceiver, intentFilter)
+        receiverRegistered = true
     }
 
     private fun unregisterSMSReceiver() {
-        unregisterReceiver(newSmsReceiver)
+        if (receiverRegistered) {
+            unregisterReceiver(newSmsReceiver)
+            receiverRegistered = false
+        }
     }
 
     override fun onMessageReceived(consentIntent: Intent) {
         try {
-            // Start activity to show consent dialog to user, activity must be started in
-            // 5 minutes, otherwise you'll receive another TIMEOUT intent
             startActivityForResult(consentIntent, REQUEST_SMS_PERMISSION_CODE)
         } catch (e: ActivityNotFoundException) {
             Toast.makeText(this, "Activity não inicializada", Toast.LENGTH_SHORT).show()
@@ -74,9 +77,12 @@ class MainActivity : AppCompatActivity(), MessageListener {
         } else {
             Toast.makeText(this, "não deu bom", Toast.LENGTH_SHORT).show()
         }
+        // se precisar escutar mais sms
+        // startNewWay()
     }
 
     override fun onTimeout() {
+        textViewMessage.text = "timed out"
         Toast.makeText(this, "timeout", Toast.LENGTH_SHORT).show()
     }
 }

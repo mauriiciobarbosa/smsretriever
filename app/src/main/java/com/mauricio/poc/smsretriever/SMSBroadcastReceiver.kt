@@ -13,16 +13,15 @@ class SMSBroadcastReceiver(
     override fun onReceive(context: Context, intent: Intent) {
         if (SmsRetriever.SMS_RETRIEVED_ACTION == intent.action) {
             val extras = intent.extras
-            val smsRetrieverStatus = extras?.get(SmsRetriever.EXTRA_STATUS) as Status
+            val smsRetrieverStatus = extras?.get(SmsRetriever.EXTRA_STATUS) as? Status
 
-            when (smsRetrieverStatus.statusCode) {
+            when (smsRetrieverStatus?.statusCode) {
                 CommonStatusCodes.SUCCESS -> {
                     extras.getParcelable<Intent>(SmsRetriever.EXTRA_CONSENT_INTENT)?.let {
                         listener.onMessageReceived(it)
                     }
                 }
                 CommonStatusCodes.TIMEOUT -> {
-                    // Time out occurred, handle the error.
                     listener.onTimeout()
                 }
             }
